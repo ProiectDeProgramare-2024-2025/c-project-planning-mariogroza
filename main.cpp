@@ -7,6 +7,22 @@
 
 using namespace std;
 
+#define RESET "\033[0m"
+#define RED "\033[31m"
+#define GREEN "\033[32m"
+#define YELLOW "\033[33m"
+#define BLUE "\033[34m"
+#define MAGENTA "\033[35m"
+#define CYAN "\033[36m"
+#define WHITE "\033[37m"
+#define BOLD "\033[1m"
+#define BRIGHT_RED "\033[91m"
+#define BRIGHT_GREEN "\033[92m"
+#define BRIGHT_YELLOW "\033[93m"
+#define BRIGHT_BLUE "\033[94m"
+#define BRIGHT_MAGENTA "\033[95m"
+#define BRIGHT_CYAN "\033[96m"
+
 struct Player {
     string name;
     int wins = 0;
@@ -40,7 +56,7 @@ vector<Player> load_players(const string& filename) {
 void save_players(const string& filename, const vector<Player>& players) {
     ofstream fout(filename, ios::trunc);
     if (!fout) {
-        cerr << "Error: Unable to write to " << filename << "\n";
+        cerr << BRIGHT_RED << "Error: Unable to write to " << filename << RESET << "\n";
         return;
     }
 
@@ -72,7 +88,7 @@ vector<Match> load_matches(const string& filename) {
 void save_matches(const string& filename, const vector<Match>& matches) {
     ofstream fout(filename, ios::trunc);
     if (!fout) {
-        cerr << "Error: Unable to write to " << filename << "\n";
+        cerr << BRIGHT_RED << "Error: Unable to write to " << filename << RESET << "\n";
         return;
     }
 
@@ -85,7 +101,7 @@ void save_matches(const string& filename, const vector<Match>& matches) {
 
 void add_match(const string& p1, int s1, const string& p2, int s2) {
     if (p1 == p2 || s1 == s2) {
-        cerr << "Invalid match.\n";
+        cerr << BRIGHT_RED << "Invalid match." << RESET << "\n";
         return;
     }
 
@@ -129,26 +145,39 @@ void add_match(const string& p1, int s1, const string& p2, int s2) {
 
     save_players("players.txt", players);
     save_matches("matches.txt", matches);
-    cout << "Match added successfully.\n";
+    cout << BRIGHT_GREEN << "Match added successfully." << RESET << "\n";
 }
 
 void match_history() {
     vector<Match> matches = load_matches("matches.txt");
     if (matches.empty()) {
-        cout << "No match history available.\n";
+        cout << YELLOW << "No match history available." << RESET << "\n";
         return;
     }
 
+    cout << BOLD << BRIGHT_CYAN << "=== MATCH HISTORY ===" << RESET << "\n";
     for (const auto& m : matches) {
-        cout << m.player1 << " (" << m.score1 << ") vs "
-             << m.player2 << " (" << m.score2 << ")\n";
+        string winner_color = (m.score1 > m.score2) ? BRIGHT_GREEN : BRIGHT_RED;
+        string loser_color = (m.score1 > m.score2) ? BRIGHT_RED : BRIGHT_GREEN;
+
+        if (m.score1 > m.score2) {
+            cout << winner_color << m.player1 << RESET << " ("
+                 << BOLD << BRIGHT_YELLOW << m.score1 << RESET << ") vs "
+                 << loser_color << m.player2 << RESET << " ("
+                 << BRIGHT_YELLOW << m.score2 << RESET << ")\n";
+        } else {
+            cout << loser_color << m.player1 << RESET << " ("
+                 << BRIGHT_YELLOW << m.score1 << RESET << ") vs "
+                 << winner_color << m.player2 << RESET << " ("
+                 << BOLD << BRIGHT_YELLOW << m.score2 << RESET << ")\n";
+        }
     }
 }
 
 void list_players() {
     vector<Player> players = load_players("players.txt");
     if (players.empty()) {
-        cout << "No players available.\n";
+        cout << YELLOW << "No players available." << RESET << "\n";
         return;
     }
 
@@ -156,21 +185,30 @@ void list_players() {
         return a.wins > b.wins;
     });
 
-    for (const auto& p : players) {
-        cout << p.name << ": " << p.wins << " wins, " << p.losses << " losses\n";
+    cout << BOLD << BRIGHT_MAGENTA << "=== PLAYER RANKINGS ===" << RESET << "\n";
+    for (int i = 0; i < players.size(); ++i) {
+        string rank_color;
+        if (i == 0) rank_color = BRIGHT_YELLOW;
+        else if (i == 1) rank_color = WHITE;
+        else if (i == 2) rank_color = YELLOW;
+        else rank_color = CYAN;
+
+        cout << rank_color << "#" << (i + 1) << " " << BOLD << players[i].name << RESET
+             << ": " << BRIGHT_GREEN << players[i].wins << " wins" << RESET
+             << ", " << BRIGHT_RED << players[i].losses << " losses" << RESET << "\n";
     }
 }
 
 int main(int argc, char* argv[]) {
     if (argc < 2) {
-        cerr << "Usage: ./app_1.exe <command> [args]\n";
+        cerr << BRIGHT_RED << "Usage: ./app_1.exe <command> [args]" << RESET << "\n";
         return 1;
     }
 
     string cmd = argv[1];
     if (cmd == "add_match") {
         if (argc != 6) {
-            cerr << "Usage: ./app_1.exe add_match <player1> <score1> <player2> <score2>\n";
+            cerr << BRIGHT_RED << "Usage: ./app_1.exe add_match <player1> <score1> <player2> <score2>" << RESET << "\n";
             return 1;
         }
         string p1 = argv[2];
@@ -183,7 +221,7 @@ int main(int argc, char* argv[]) {
     } else if (cmd == "list_players") {
         list_players();
     } else {
-        cerr << "Unknown command.\n";
+        cerr << BRIGHT_RED << "Unknown command." << RESET << "\n";
         return 1;
     }
 
